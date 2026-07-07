@@ -1268,8 +1268,8 @@ async function generate() {
   document.getElementById('btn-hide').style.display = '';
   document.getElementById('prompt-bar').style.display = '';
 
-  // Scroll to results
-  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll to the prompt bar at the bottom so everything is visible
+  document.getElementById('prompt-bar').scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 </script>
 
