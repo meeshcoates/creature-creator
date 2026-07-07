@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creature Creator - Art Reference</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    padding: 1.5rem 1rem 1rem;
+    background: linear-gradient(135deg, #16213e, #0f3460);
+    border-bottom: 3px solid #e94560;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    color: #e94560;
+    letter-spacing: 2px;
+  }
+
+  header p {
+    color: #a0a0c0;
+    margin-top: 0.3rem;
+    font-size: 0.95rem;
+  }
+
+  .controls {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .part-selector {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #0f3460;
+  }
+
+  .part-selector label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: #e94560;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .autocomplete-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .autocomplete-wrapper input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #0f3460;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .autocomplete-wrapper input:focus {
+    border-color: #e94560;
+  }
+
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+  }
+
+  .autocomplete-list.active { display: block; }
+
+  .autocomplete-list div {
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .autocomplete-list div:hover,
+  .autocomplete-list div.highlighted {
+    background: #0f3460;
+    color: #e94560;
+  }
+
+  .btn-random {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #e94560;
+    background: transparent;
+    color: #e94560;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    title: "Random";
+  }
+
+  .btn-random:hover { background: #e9456020; }
+
+  .action-bar {
+    text-align: center;
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+  }
+
+  .btn-generate, .btn-all-random, .btn-print {
+    padding: 0.8rem 2rem;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+
+  .btn-generate {
+    background: linear-gradient(135deg, #e94560, #c23152);
+    color: white;
+  }
+
+  .btn-all-random {
+    background: linear-gradient(135deg, #0f3460, #16213e);
+    color: #e94560;
+    border: 2px solid #e94560;
+  }
+
+  .btn-print {
+    background: linear-gradient(135deg, #2d6a4f, #40916c);
+    color: white;
+  }
+
+  .btn-generate:hover, .btn-all-random:hover, .btn-print:hover {
+    transform: scale(1.04);
+    box-shadow: 0 4px 20px #e9456040;
+  }
+
+  .results {
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .result-card {
+    background: #16213e;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #0f3460;
+    transition: transform 0.2s;
+  }
+
+  .result-card:hover { transform: translateY(-3px); }
+
+  .result-card .card-header {
+    padding: 0.8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #0f3460;
+    gap: 0.5rem;
+  }
+
+  .card-header .part-name {
+    font-weight: 600;
+    color: #e94560;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-header .animal-name {
+    color: #a0a0c0;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .card-header a.animal-name:hover {
+    color: #e94560;
+  }
+
+  .btn-search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid #0f3460;
+    background: transparent;
+    color: #a0a0c0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-search:hover {
+    border-color: #e94560;
+    color: #e94560;
+    background: #e9456015;
+  }
+
+  .result-card .card-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    background: #1a1a2e;
+  }
+
+  .result-card .loading {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a2e;
+    color: #a0a0c0;
+    font-size: 0.9rem;
+  }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #0f3460;
+    border-top-color: #e94560;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 0.5rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-card .card-error {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a2e;
+    color: #e94560;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .toggles {
+    max-width: 900px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .toggle-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 20px;
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .toggle-chip:hover { border-color: #e94560; }
+
+  .toggle-chip input { display: none; }
+
+  .toggle-chip .chip-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .toggle-chip input:checked ~ .chip-dot {
+    border-color: var(--chip-color, #e94560);
+    background: var(--chip-color, #e94560);
+  }
+
+  .toggle-chip input:checked ~ .chip-label {
+    color: var(--chip-color, #e94560);
+  }
+
+  .toggle-chip .chip-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #777;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }
+
+  @media print {
+    body { background: white; color: #222; }
+    header { background: white; border-bottom: 2px solid #333; }
+    header h1 { color: #333; }
+    .controls, .action-bar, .toggles { display: none; }
+    .results { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .result-card { border: 1px solid #ccc; break-inside: avoid; }
+    .card-header .part-name { color: #333; }
+    .card-header .animal-name { color: #666; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Creature Creator</h1>
+  <p>Mix &amp; match animal parts to inspire your next fictional creature!</p>
+</header>
+
+<div class="toggles">
+  <label class="toggle-chip" style="--chip-color:#4cc9f0;">
+    <input type="checkbox" id="toggle-animals" checked onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Animals</span>
+  </label>
+  <label class="toggle-chip" style="--chip-color:#f77f00;">
+    <input type="checkbox" id="toggle-dinos" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Dinosaurs</span>
+  </label>
+  <label class="toggle-chip" style="--chip-color:#d946ef;">
+    <input type="checkbox" id="toggle-mythical" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Mythical Creatures</span>
+  </label>
+  <label class="toggle-chip" style="--chip-color:#06d6a0;">
+    <input type="checkbox" id="toggle-fiction" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Fiction / Fantasy</span>
+  </label>
+  <label class="toggle-chip" style="--chip-color:#00b4d8;">
+    <input type="checkbox" id="toggle-aliens" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Aliens</span>
+  </label>
+</div>
+
+<div class="controls" id="controls"></div>
+
+<div class="action-bar">
+  <button class="btn-all-random" onclick="randomizeAll()">Randomize All</button>
+  <button class="btn-generate" onclick="generate()">Generate</button>
+  <button class="btn-print" onclick="window.print()">Print Reference</button>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+const BODY_PARTS = [
+  { id: 'base',  label: 'Base Animal' },
+  { id: 'head',  label: 'Head' },
+  { id: 'ears',  label: 'Ears' },
+  { id: 'eyes',  label: 'Eyes' },
+  { id: 'nose',  label: 'Nose / Snout' },
+  { id: 'body',  label: 'Body / Torso' },
+  { id: 'front', label: 'Front Legs / Arms' },
+  { id: 'back',  label: 'Back Legs' },
+  { id: 'feet',  label: 'Feet / Paws / Hooves' },
+  { id: 'tail',  label: 'Tail' },
+  { id: 'coat',  label: 'Coat / Skin / Scales' },
+  { id: 'color', label: 'Colour / Pattern' },
+  { id: 'wings', label: 'Wings (optional)' },
+  { id: 'extra', label: 'Extra Feature' },
+];
+
+const ANIMALS = [
+  "Alligator","Alpaca","Ant","Anteater","Antelope","Armadillo","Axolotl",
+  "Baboon","Badger","Bat","Bear","Beaver","Beetle","Bison","Boar",
+  "Buffalo","Butterfly","Camel","Capybara","Caribou","Cat","Caterpillar",
+  "Chameleon","Cheetah","Chicken","Chimpanzee","Chinchilla","Cobra",
+  "Cockroach","Crab","Crane","Crocodile","Crow","Deer","Dingo","Dog",
+  "Dolphin","Donkey","Dragonfly","Duck","Eagle","Echidna","Eel",
+  "Elephant","Elk","Emu","Falcon","Ferret","Flamingo","Fly","Fox",
+  "Frog","Gazelle","Gecko","Giraffe","Goat","Goose","Gorilla",
+  "Grasshopper","Grizzly Bear","Hamster","Hare","Hawk","Hedgehog",
+  "Hippopotamus","Hornet","Horse","Hummingbird","Hyena","Iguana",
+  "Impala","Jackal","Jaguar","Jellyfish","Kangaroo","Koala",
+  "Komodo Dragon","Ladybug","Lemur","Leopard","Lion","Lizard","Llama",
+  "Lobster","Lynx","Macaw","Mandrill","Manta Ray","Mantis","Meerkat",
+  "Moose","Moth","Mouse","Narwhal","Newt","Octopus","Opossum",
+  "Orangutan","Ostrich","Otter","Owl","Ox","Panda","Pangolin",
+  "Panther","Parrot","Peacock","Pelican","Penguin","Pig","Platypus",
+  "Polar Bear","Porcupine","Praying Mantis","Puffin","Python","Quail",
+  "Rabbit","Raccoon","Ram","Rat","Rattlesnake","Raven","Red Panda",
+  "Rhinoceros","Rooster","Salamander","Salmon","Scorpion","Seahorse",
+  "Seal","Shark","Sheep","Sloth","Snail","Snake","Snow Leopard",
+  "Spider","Squid","Squirrel","Starfish","Stingray","Swan","Tapir",
+  "Tiger","Toad","Toucan","Turkey","Turtle","Vulture","Walrus","Wasp",
+  "Weasel","Whale","Wolf","Wolverine","Wombat","Woodpecker","Yak","Zebra"
+];
+
+const DINOSAURS = [
+  "Allosaurus","Ankylosaurus","Apatosaurus","Archaeopteryx","Brachiosaurus",
+  "Carnotaurus","Compsognathus","Deinonychus","Dilophosaurus","Diplodocus",
+  "Gallimimus","Giganotosaurus","Iguanodon","Megalosaurus","Mosasaurus",
+  "Pachycephalosaurus","Parasaurolophus","Plesiosaur","Pteranodon","Pterodactyl",
+  "Quetzalcoatlus","Spinosaurus","Stegosaurus","Therizinosaurus",
+  "Triceratops","Tyrannosaurus Rex","Utahraptor","Velociraptor"
+];
+
+const MYTHICAL = [
+  "Basilisk","Behemoth","Centaur","Cerberus","Chimera","Cockatrice",
+  "Cyclops","Dragon","Fenrir","Gargoyle","Griffin","Harpy","Hippogriff",
+  "Hydra","Jackalope","Kelpie","Kraken","Leviathan","Manticore","Medusa",
+  "Minotaur","Naga","Nemean Lion","Pegasus","Phoenix","Qilin",
+  "Roc","Satyr","Sea Serpent","Siren","Sphinx",
+  "Thunderbird","Unicorn","Wendigo","Wyvern","Yeti"
+];
+
+const FICTION = [
+  // Lovecraft / Cthulhu Mythos
+  "Shoggoth","Cthulhu","Deep One","Elder Thing","Mi-Go","Nyarlathotep",
+  // Tolkien
+  "Balrog","Ent","Fellbeast","Shelob","Warg",
+  // Harry Potter
+  "Basilisk","Hippogriff","Thestral","Acromantula","Niffler","Bowtruckle",
+  // Film & TV
+  "Godzilla","King Kong","Mothra","Cloverfield Monster",
+  "Demogorgon","Graboid","Kaiju",
+  // Games
+  "Chocobo","Deathclaw","Creeper","Enderman",
+  // Literature
+  "Sandworm",
+];
+
+const ALIENS = [
+  // Film
+  "Xenomorph","Facehugger","Predator",
+  "E.T.","Groot","Jabba the Hutt",
+  // Star Wars creatures
+  "Rancor","Sarlacc","Tauntaun","Wampa","Krayt Dragon",
+  // Star Trek
+  "Tribble","Gorn","Tholian",
+  // Doctor Who
+  "Dalek","Weeping Angel","Ood","Zygon",
+  // Film & TV
+  "Martian","Prawns","Predaking",
+  // Literature
+  "Thoat","Banth","Pierson's Puppeteer",
+  // Games
+  "Metroid","Elite","Headcrab","Hydralisk",
+  // Classic alien archetypes
+  "Grey Alien","Reptilian","Insectoid Alien",
+];
+
+// Returns the combined active creature list based on toggle state
+function getActiveList() {
+  const list = [];
+  if (document.getElementById('toggle-animals').checked)  list.push(...ANIMALS);
+  if (document.getElementById('toggle-dinos').checked)    list.push(...DINOSAURS);
+  if (document.getElementById('toggle-mythical').checked) list.push(...MYTHICAL);
+  if (document.getElementById('toggle-fiction').checked)  list.push(...FICTION);
+  if (document.getElementById('toggle-aliens').checked)  list.push(...ALIENS);
+  // Deduplicate (e.g. Basilisk, Hippogriff appear in both Mythical and Fiction)
+  const unique = [...new Set(list)];
+  unique.sort();
+  return unique;
+}
+
+// Called when toggles change — no need to rebuild the DOM,
+// autocomplete reads the active list dynamically
+function rebuildLists() {
+  // nothing to rebuild — getActiveList() is called live
+}
+
+// Build controls
+const controlsEl = document.getElementById('controls');
+BODY_PARTS.forEach(part => {
+  const div = document.createElement('div');
+  div.className = 'part-selector';
+  div.innerHTML = `
+    <label>${part.label}</label>
+    <div class="input-row">
+      <div class="autocomplete-wrapper">
+        <input type="text" id="input-${part.id}" placeholder="Type an animal..." autocomplete="off">
+        <div class="autocomplete-list" id="list-${part.id}"></div>
+      </div>
+      <button class="btn-random" onclick="randomize('${part.id}')" title="Random">&#127922;</button>
+    </div>
+  `;
+  controlsEl.appendChild(div);
+  setupAutocomplete(part.id);
+});
+
+function setupAutocomplete(partId) {
+  const input = document.getElementById(`input-${partId}`);
+  const list = document.getElementById(`list-${partId}`);
+  let highlightIdx = -1;
+
+  input.addEventListener('input', () => {
+    const val = input.value.toLowerCase().trim();
+    list.innerHTML = '';
+    highlightIdx = -1;
+    if (!val) { list.classList.remove('active'); return; }
+    const matches = getActiveList().filter(a => a.toLowerCase().includes(val));
+    if (!matches.length) { list.classList.remove('active'); return; }
+    matches.slice(0, 20).forEach(animal => {
+      const d = document.createElement('div');
+      d.textContent = animal;
+      d.addEventListener('mousedown', e => { e.preventDefault(); });
+      d.addEventListener('click', () => { input.value = animal; list.classList.remove('active'); });
+      list.appendChild(d);
+    });
+    list.classList.add('active');
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = list.querySelectorAll('div');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightIdx = Math.min(highlightIdx + 1, items.length - 1);
+      items.forEach((it, i) => it.classList.toggle('highlighted', i === highlightIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightIdx = Math.max(highlightIdx - 1, 0);
+      items.forEach((it, i) => it.classList.toggle('highlighted', i === highlightIdx));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIdx >= 0 && items[highlightIdx]) {
+        input.value = items[highlightIdx].textContent;
+        list.classList.remove('active');
+      }
+    }
+  });
+
+  input.addEventListener('blur', () => { list.classList.remove('active'); });
+}
+
+function randomize(partId) {
+  const input = document.getElementById(`input-${partId}`);
+  const list = getActiveList();
+  if (!list.length) return;
+  input.value = list[Math.floor(Math.random() * list.length)];
+}
+
+function randomizeAll() {
+  BODY_PARTS.forEach(part => randomize(part.id));
+}
+
+// Image cache — stores { img: url, source: url } per animal
+const imageCache = {};
+
+// Known disambiguation overrides — animals whose Wikipedia page title
+// doesn't match the common name (e.g. "Turkey" -> country, not bird)
+const WIKI_OVERRIDES = {
+  'Turkey':       'Turkey_(bird)',
+  'Crane':        'Crane_(bird)',
+  'Ram':          'Ram_(animal)',
+  'Fly':          'Fly',              // "Fly" page is actually about the insect
+  'Mouse':        'Mouse_(rodent)',
+  'Rat':          'Rat',
+  'Jaguar':       'Jaguar',           // car vs cat — page is the cat
+  'Impala':       'Impala',           // car vs antelope — page is the antelope
+  'Cobra':        'Cobra',
+  'Python':       'Python_(genus)',
+  'Rooster':      'Rooster',
+  'Ox':           'Ox',
+  'Boar':         'Wild_boar',
+  'Panda':        'Giant_panda',
+  'Panther':      'Black_panther_(animal)',
+  // Dinosaurs
+  'Tyrannosaurus Rex': 'Tyrannosaurus',
+  'Pterodactyl':  'Pterodactylus',
+  'Plesiosaur':   'Plesiosauria',
+  // Mythical
+  'Dragon':       'Dragon',
+  'Phoenix':      'Phoenix_(mythology)',
+  'Sphinx':       'Sphinx',
+  'Hydra':        'Hydra_(mythology)',
+  'Harpy':        'Harpy',
+  'Hippogriff':   'Hippogriff',
+  'Wyvern':       'Wyvern',
+  'Cockatrice':   'Cockatrice',
+  'Roc':          'Roc_(mythology)',
+  'Kelpie':       'Kelpie',
+  'Jackalope':    'Jackalope',
+  'Yeti':         'Yeti',
+  'Gargoyle':     'Gargoyle',
+  'Nemean Lion':  'Nemean_lion',
+  'Sea Serpent':  'Sea_serpent',
+  'Chimera':      'Chimera_(mythology)',
+  'Griffin':      'Griffin',
+  'Pegasus':      'Pegasus',
+  'Unicorn':      'Unicorn',
+  'Cerberus':     'Cerberus',
+  'Minotaur':     'Minotaur',
+  'Medusa':       'Medusa',
+  'Kraken':       'Kraken',
+  'Basilisk':     'Basilisk',
+  'Manticore':    'Manticore',
+  'Centaur':      'Centaur',
+  'Cyclops':      'Cyclops',
+  'Siren':        'Siren_(mythology)',
+  'Thunderbird':  'Thunderbird_(mythology)',
+  'Qilin':        'Qilin',
+  'Naga':         'Nāga',
+  'Behemoth':     'Behemoth',
+  'Leviathan':    'Leviathan',
+  'Fenrir':       'Fenrir',
+  'Satyr':        'Satyr',
+  'Wendigo':      'Wendigo',
+  // Fiction
+  'Shoggoth':     'Shoggoth',
+  'Cthulhu':      'Cthulhu',
+  'Deep One':     'Deep_One',
+  'Elder Thing':  'Elder_Thing',
+  'Mi-Go':        'Mi-Go',
+  'Nyarlathotep': 'Nyarlathotep',
+  'Balrog':       'Balrog',
+  'Ent':          'Ent',
+  'Fellbeast':    'Fell_beast',
+
+  'Shelob':       'Shelob',
+  'Warg':         'Warg',
+  'Thestral':     'Thestral',
+  'Acromantula':  'Acromantula',
+  'Niffler':      'Niffler',
+  'Bowtruckle':   'Bowtruckle',
+  'Xenomorph':    'Xenomorph_(Alien)',
+  'Predator':     'Yautja',
+  'Godzilla':     'Godzilla',
+  'King Kong':    'King_Kong',
+  'Mothra':       'Mothra',
+  'Demogorgon':   'Demogorgon_(Stranger_Things)',
+  'Graboid':      'Graboid',
+  'Rancor':       'Rancor_(Star_Wars)',
+  'Sarlacc':      'Sarlacc',
+  'Tauntaun':     'Tauntaun',
+  'Wampa':        'Wampa',
+  'Krayt Dragon': 'Krayt_dragon',
+  'Chocobo':      'Chocobo',
+  'Deathclaw':    'Deathclaw',
+  'Creeper':      'Creeper_(Minecraft)',
+  'Enderman':     'Enderman',
+  'Sandworm':     'Sandworm_(Dune)',
+  'Kaiju':        'Kaiju',
+  'Cloverfield Monster': 'Clover_(creature)',
+  // Aliens
+  'E.T.':         'E.T._the_Extra-Terrestrial',
+  'Groot':        'Groot',
+  'Jabba the Hutt': 'Jabba_the_Hutt',
+  'Gorn':         'Gorn',
+
+  'Tholian':      'Tholian',
+  'Dalek':        'Dalek',
+  'Weeping Angel': 'Weeping_Angel',
+  'Ood':          'Ood',
+  'Zygon':        'Zygon',
+
+  'Prawns':       'District_9',
+  'Thoat':        'Barsoom',
+  'Banth':        'Barsoom',
+  "Pierson's Puppeteer": "Pierson%27s_Puppeteers",
+  'Metroid':      'Metroid_(creature)',
+  'Headcrab':     'Headcrab',
+  'Zergling':     'Zergling',
+  'Grey Alien':   'Grey_alien',
+  'Reptilian':    'Reptilians',
+  'Insectoid Alien': 'Insectoid',
+  'Hydralisk':    'Hydralisk',
+  'Martian':      'Martian_(film)',
+  'Elite':        'Sangheili',
+  'Predaking':    'Predaking',
+};
+
+// Animal-related categories/keywords to validate a Wikipedia result is
+// actually about an animal, not a country, car, programming language, etc.
+const ANIMAL_KEYWORDS = [
+  // Real animals
+  'animal', 'species', 'mammal', 'bird', 'reptile', 'amphibian', 'fish',
+  'insect', 'arachnid', 'crustacean', 'mollusk', 'mollusc', 'invertebrate',
+  'vertebrate', 'predator', 'prey', 'habitat', 'genus', 'family',
+  'order', 'phylum', 'carnivore', 'herbivore', 'omnivore', 'breed',
+  'wildlife', 'fauna', 'domestic', 'wild', 'tail', 'wings', 'feathers',
+  'fur', 'scales', 'legs', 'claws', 'hooves', 'paws', 'snout', 'beak',
+  // Dinosaurs
+  'dinosaur', 'theropod', 'sauropod', 'cretaceous', 'jurassic', 'triassic',
+  'mesozoic', 'fossil', 'extinct', 'prehistoric', 'herbivorous', 'carnivorous',
+  // Mythical creatures
+  'mythology', 'mythological', 'mythical', 'legendary', 'folklore', 'creature',
+  'beast', 'monster', 'serpent', 'greek', 'norse', 'dragon', 'depicted',
+  // Fiction & Aliens
+  'fictional', 'fiction', 'character', 'film', 'movie', 'novel', 'video game',
+  'franchise', 'lovecraft', 'tolkien', 'cthulhu', 'alien', 'sci-fi',
+  'extraterrestrial', 'star wars', 'star trek', 'doctor who', 'halo',
+  'starcraft', 'metroid', 'half-life', 'xenomorph', 'parasite',
+];
+
+// Words that indicate the article is about the WRONG thing
+const REJECT_KEYWORDS = [
+  'constellation', 'star cluster', 'light-year', 'astronomical',
+  'right ascension', 'declination', 'apparent magnitude',
+  'software', 'programming language', 'automobile',
+  'municipality', 'province', 'district', 'county',
+  // Safety — reject articles about hatred, politics, violence, etc.
+  'rally', 'protest', 'hatred', 'hostility', 'bitterness', 'resentment',
+  'political', 'extremis', 'supremac',
+  // Reject bands, musicians, albums
+  'band', 'album', 'musical', 'guitarist', 'vocalist', 'drummer',
+  'discography', 'record label', 'grindcore', 'death metal', 'heavy metal',
+  'rock band', 'punk', 'hip hop',
+];
+
+function looksLikeAnimalArticle(summary) {
+  if (!summary || !summary.extract) return false;
+  const text = summary.extract.toLowerCase();
+
+  // Reject if it's clearly about something else
+  for (const rk of REJECT_KEYWORDS) {
+    if (text.includes(rk)) return false;
+  }
+
+  // Count how many animal keywords appear
+  let hits = 0;
+  for (const kw of ANIMAL_KEYWORDS) {
+    if (text.includes(kw)) hits++;
+  }
+  return hits >= 2;
+}
+
+// Words in image filenames that suggest a bad/irrelevant result
+const COMMONS_REJECT = [
+  'fossil', 'skeleton', 'skull', 'bone', 'museum', 'mount',
+  'cast', 'specimen', 'holotype', 'excavat', 'quarry',
+  'microscop', 'microbe', 'bacteria', 'cell', 'electron',
+  'flag', 'logo', 'map', 'diagram', 'chart', 'graph',
+  'constellation', 'star_chart', 'astro',
+  'rally', 'protest', 'march', 'charlottesville', 'nazi', 'supremac',
+  'band', 'album', 'concert', 'guitarist', 'vocalist', 'drummer',
+];
+
+function isRejectImage(text) {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return COMMONS_REJECT.some(p => lower.includes(p));
+}
+
+function isFossilImage(url) {
+  return isRejectImage(url);
+}
+
+// Check if this creature is a dinosaur or mythical (needs illustration preference)
+function needsIllustration(animal) {
+  return DINOSAURS.includes(animal) || MYTHICAL.includes(animal) || FICTION.includes(animal) || ALIENS.includes(animal);
+}
+
+async function fetchSummary(term) {
+  try {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+    const resp = await fetch(url);
+    if (resp.ok) return await resp.json();
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+// Search Wikimedia Commons for illustrations/art of a creature
+// Returns { img, source } or null
+async function fetchCommonsImage(animal, searchSuffix) {
+  try {
+    const query = animal + ' ' + searchSuffix;
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*`
+      + `&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=10`
+      + `&prop=imageinfo&iiprop=url|mime&iiurlwidth=600`;
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const pages = data.query?.pages;
+    if (!pages) return null;
+
+    // Sort by relevance (page index), pick first acceptable image
+    const sorted = Object.values(pages).sort((a, b) => (a.index || 0) - (b.index || 0));
+    for (const page of sorted) {
+      const info = page.imageinfo?.[0];
+      if (!info) continue;
+      if (!info.mime?.startsWith('image/')) continue;
+      if (info.mime === 'image/svg+xml') continue;
+      const imgUrl = info.thumburl || info.url;
+      if (isRejectImage(imgUrl) || isRejectImage(page.title)) continue;
+      const pageUrl = info.descriptionurl || `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title)}`;
+      return { img: imgUrl, source: pageUrl };
+    }
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+// Helper to build a Wikipedia article URL from a search term
+function wikiUrl(term) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(term)}`;
+}
+
+// Returns { img, source } or null
+async function fetchAnimalImage(animal) {
+  if (imageCache[animal]) return imageCache[animal];
+
+  const wantsIllustration = needsIllustration(animal);
+
+  // 1. For dinosaurs, try Wikimedia Commons for paleoart illustrations
+  //    (Skip Commons for mythical creatures — their Wikipedia articles
+  //    already have paintings/illustrations, and Commons search returns
+  //    random unrelated mythological art)
+  if (wantsIllustration && !MYTHICAL.includes(animal) && !FICTION.includes(animal) && !ALIENS.includes(animal)) {
+    const suffixes = ['restoration', 'illustration', 'art', 'drawing', 'reconstruction'];
+    for (const suffix of suffixes) {
+      const result = await fetchCommonsImage(animal, suffix);
+      if (result) {
+        imageCache[animal] = result;
+        return result;
+      }
+    }
+  }
+
+  // 2. Check if we have a known override for this animal
+  const override = WIKI_OVERRIDES[animal];
+
+  // 3. Build search order: override first, then disambiguation variants
+  const searchTerms = [];
+  if (override) searchTerms.push(override);
+  searchTerms.push(
+    animal + '_(animal)',
+    animal + '_(bird)',
+    animal + '_(species)',
+    animal + '_(genus)',
+    animal,
+  );
+  const uniqueTerms = [...new Set(searchTerms)];
+
+  // 4. Try each term — accept the first result that looks like an animal article
+  let fallbackResult = null;
+
+  for (const term of uniqueTerms) {
+    const data = await fetchSummary(term);
+    if (!data || !data.thumbnail?.source) continue;
+
+    const imgUrl = data.originalimage?.source || data.thumbnail.source;
+    const result = { img: imgUrl, source: data.content_urls?.desktop?.page || wikiUrl(term) };
+
+    // For mythical creatures with a known override, trust the override
+    // directly — their articles may not have enough "animal" keywords
+    const hasOverride = WIKI_OVERRIDES[animal] && term === WIKI_OVERRIDES[animal];
+    if (hasOverride || looksLikeAnimalArticle(data)) {
+      if (wantsIllustration && isFossilImage(imgUrl)) {
+        if (!fallbackResult) fallbackResult = result;
+        continue;
+      }
+      imageCache[animal] = result;
+      return result;
+    }
+
+    if (!fallbackResult) fallbackResult = result;
+  }
+
+  // 5. Search API fallback — explicitly search for the animal
+  try {
+    const searchSuffix = wantsIllustration ? 'illustration reconstruction' : 'animal species';
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*`
+      + `&generator=search&gsrsearch=${encodeURIComponent(animal + ' ' + searchSuffix)}&gsrlimit=5`
+      + `&prop=pageimages|extracts&piprop=original|thumbnail&pithumbsize=600&exintro=1&explaintext=1&exlimit=5`;
+    const resp = await fetch(searchUrl);
+    if (resp.ok) {
+      const data = await resp.json();
+      const pages = data.query?.pages;
+      if (pages) {
+        for (const page of Object.values(pages)) {
+          const imgUrl = page.original?.source || page.thumbnail?.source;
+          if (!imgUrl) continue;
+          if (wantsIllustration && isFossilImage(imgUrl)) continue;
+          const extract = (page.extract || '').toLowerCase();
+          let hits = 0;
+          for (const kw of ANIMAL_KEYWORDS) {
+            if (extract.includes(kw)) hits++;
+          }
+          if (hits >= 2) {
+            const result = { img: imgUrl, source: wikiUrl(page.title) };
+            imageCache[animal] = result;
+            return result;
+          }
+          if (!fallbackResult) fallbackResult = { img: imgUrl, source: wikiUrl(page.title) };
+        }
+      }
+    }
+  } catch (e) { /* fall through */ }
+
+  // 6. Last resort: try Commons with just the animal name
+  if (wantsIllustration) {
+    const result = await fetchCommonsImage(animal, '');
+    if (result) {
+      imageCache[animal] = result;
+      return result;
+    }
+  }
+
+  // 7. Use fallback if we found any image at all
+  if (fallbackResult) {
+    imageCache[animal] = fallbackResult;
+    return fallbackResult;
+  }
+
+  return null;
+}
+
+async function generate() {
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '';
+
+  const selections = BODY_PARTS.map(part => ({
+    part,
+    animal: document.getElementById(`input-${part.id}`).value.trim()
+  })).filter(s => s.animal);
+
+  if (!selections.length) {
+    resultsEl.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#a0a0c0;">Pick at least one animal above, then hit Generate!</p>';
+    return;
+  }
+
+  // Build a search-friendly term for each body part
+  const SEARCH_TERMS = {
+    base:  '',
+    head:  'head face',
+    ears:  'ears close up',
+    eyes:  'eyes close up',
+    nose:  'nose snout close up',
+    body:  'body torso',
+    front: 'front legs arms',
+    back:  'back legs hind legs',
+    feet:  'feet paws hooves claws close up',
+    tail:  'tail',
+    coat:  'fur skin scales texture close up',
+    color: 'colour pattern markings',
+    wings: 'wings',
+    extra: 'unique features',
+  };
+
+  function imageSearchUrl(animal, partId) {
+    const suffix = SEARCH_TERMS[partId] || '';
+    let context = 'animal';
+    if (MYTHICAL.includes(animal))   context = 'mythology creature';
+    if (DINOSAURS.includes(animal))  context = 'dinosaur';
+    if (FICTION.includes(animal))    context = 'fictional creature';
+    if (ALIENS.includes(animal))    context = 'alien creature sci-fi';
+    const q = (animal + ' ' + context + ' ' + suffix + ' reference photo').trim();
+    return `https://www.google.com/search?q=${encodeURIComponent(q)}&udm=2`;
+  }
+
+  // Create cards with loading state
+  selections.forEach(({ part, animal }) => {
+    const searchHref = imageSearchUrl(animal, part.id);
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.id = `card-${part.id}`;
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="part-name">${part.label}</span>
+        <div class="card-header-right">
+          <span class="animal-name">${animal}</span>
+          <a class="btn-search" href="${searchHref}" target="_blank" rel="noopener" title="Search for ${animal} ${part.label.toLowerCase()} images">&#128269;</a>
+        </div>
+      </div>
+      <div class="loading"><div><div class="spinner"></div><div>Finding ${animal}...</div></div></div>
+    `;
+    resultsEl.appendChild(card);
+  });
+
+  // Fetch images in parallel
+  const promises = selections.map(async ({ part, animal }) => {
+    const card = document.getElementById(`card-${part.id}`);
+    try {
+      const result = await fetchAnimalImage(animal);
+      if (result) {
+        // Update the animal name to be a clickable link to source
+        const nameEl = card.querySelector('.animal-name');
+        const link = document.createElement('a');
+        link.className = 'animal-name';
+        link.href = result.source;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = animal;
+        link.title = 'View source page';
+        nameEl.replaceWith(link);
+
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.alt = `${animal} - reference for ${part.label}`;
+        img.src = result.img;
+        img.loading = 'lazy';
+        card.querySelector('.loading').replaceWith(img);
+      } else {
+        card.querySelector('.loading').outerHTML = `<div class="card-error">No photo found for "${animal}".<br>Try a different spelling!</div>`;
+      }
+    } catch {
+      card.querySelector('.loading').outerHTML = `<div class="card-error">Failed to load image.<br>Check your internet connection.</div>`;
+    }
+  });
+
+  await Promise.all(promises);
+
+  // Scroll to results
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+
+</body>
+</html>
