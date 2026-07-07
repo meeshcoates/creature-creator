@@ -197,7 +197,7 @@ The entire app is a single `index.html` file. To add your own creatures:
 
 ## Credits
 
-Built with [Claude Code](https://claude.ai/code) by Anthropic.
+Created by Michelle Coates ([@meeshcoates](https://github.com/meeshcoates)) with assistance from [Claude Code](https://claude.ai/code) by Anthropic. Inspired and tested by her son — the concept artist himself!
 
 ## License
 
