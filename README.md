@@ -14,7 +14,7 @@ A lightweight, single-file HTML app that helps artists design fictional creature
 6. **Click the magnifying glass** on any card to open a Google Images search tailored to that specific body part (e.g. "owl eyes close up")
 7. **Copy AI Prompt** at the bottom builds a ready-to-paste prompt for Gemini, ChatGPT, etc.
 
-No API keys, no install, no dependencies — just open the HTML file in a browser.
+No API keys, no install, no dependencies just open the HTML file in a browser.
 
 ## Body Part Slots
 
@@ -38,7 +38,7 @@ No API keys, no install, no dependencies — just open the HTML file in a browse
 ## Creature Categories
 
 ### Animals (160 creatures)
-The standard animal kingdom — mammals, birds, reptiles, amphibians, fish, and invertebrates. Includes **Human** for mixing human features into creature designs.
+The standard animal kingdom; mammals, birds, reptiles, amphibians, fish, and invertebrates. Includes **Human** for mixing human features into creature designs.
 
 <details>
 <summary>Full list</summary>
@@ -123,9 +123,9 @@ The app fetches images from Wikipedia and Wikimedia Commons using their free, no
    - Override mapping (if one exists, e.g. `Turkey` -> `Turkey_(bird)`)
    - `Name_(animal)`, `Name_(bird)`, `Name_(species)`, `Name_(genus)`
    - Plain `Name`
-3. **Article validation** — each result's extract text is checked for animal/creature keywords (mammal, species, mythology, fictional, etc.) and rejected if it matches non-creature topics (constellation, programming language, band, political, etc.)
-4. **Wikipedia Search API fallback** — searches for `"name animal species"` or `"name illustration reconstruction"` and scores top 5 results
-5. **Last resort** — Wikimedia Commons search with just the creature name
+3. **Article validation** each result's extract text is checked for animal/creature keywords (mammal, species, mythology, fictional, etc.) and rejected if it matches non-creature topics (constellation, programming language, band, political, etc.)
+4. **Wikipedia Search API fallback** searches for `"name animal species"` or `"name illustration reconstruction"` and scores top 5 results
+5. **Last resort** Wikimedia Commons search with just the creature name
 
 ### Wikipedia overrides
 
