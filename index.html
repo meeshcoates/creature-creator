@@ -113,7 +113,7 @@
     color: #e94560;
   }
 
-  .btn-random {
+  .btn-random, .btn-lock {
     padding: 0.6rem 0.8rem;
     border-radius: 8px;
     border: 1px solid #e94560;
@@ -121,12 +121,28 @@
     color: #e94560;
     font-size: 1.1rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
     flex-shrink: 0;
-    title: "Random";
   }
 
   .btn-random:hover { background: #e9456020; }
+
+  .btn-lock {
+    border-color: #0f3460;
+    color: #555;
+    font-size: 1rem;
+  }
+
+  .btn-lock:hover {
+    border-color: #e94560;
+    color: #e94560;
+  }
+
+  .btn-lock.locked {
+    border-color: #f77f00;
+    color: #f77f00;
+    background: #f77f0015;
+  }
 
   .action-bar {
     text-align: center;
@@ -160,12 +176,8 @@
     border: 2px solid #e94560;
   }
 
-  .btn-print {
-    background: linear-gradient(135deg, #2d6a4f, #40916c);
-    color: white;
-  }
 
-  .btn-generate:hover, .btn-all-random:hover, .btn-print:hover {
+  .btn-generate:hover, .btn-all-random:hover {
     transform: scale(1.04);
     box-shadow: 0 4px 20px #e9456040;
   }
@@ -246,12 +258,60 @@
     background: #e9456015;
   }
 
-  .result-card .card-img {
+  .result-card .card-img-wrapper {
+    position: relative;
     width: 100%;
     aspect-ratio: 4/3;
+    overflow: hidden;
+    background: #1a1a2e;
+  }
+
+  .result-card .card-img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
-    background: #1a1a2e;
+  }
+
+  .card-img-wrapper.hidden .card-img {
+    filter: blur(30px) brightness(0.3);
+  }
+
+  .card-reveal-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: rgba(26, 26, 46, 0.6);
+    transition: opacity 0.3s;
+    z-index: 1;
+  }
+
+  .card-reveal-overlay .reveal-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-reveal-overlay .reveal-text {
+    font-size: 0.85rem;
+    color: #a0a0c0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .card-reveal-overlay:hover {
+    background: rgba(26, 26, 46, 0.4);
+  }
+
+  .card-reveal-overlay:hover .reveal-text {
+    color: #e94560;
+  }
+
+  .card-img-wrapper:not(.hidden) .card-reveal-overlay {
+    display: none;
   }
 
   .result-card .loading {
@@ -340,16 +400,6 @@
     transition: color 0.2s;
   }
 
-  @media print {
-    body { background: white; color: #222; }
-    header { background: white; border-bottom: 2px solid #333; }
-    header h1 { color: #333; }
-    .controls, .action-bar, .toggles { display: none; }
-    .results { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-    .result-card { border: 1px solid #ccc; break-inside: avoid; }
-    .card-header .part-name { color: #333; }
-    .card-header .animal-name { color: #666; }
-  }
 </style>
 </head>
 <body>
@@ -385,14 +435,26 @@
     <span class="chip-dot"></span>
     <span class="chip-label">Aliens</span>
   </label>
+  <label class="toggle-chip" style="--chip-color:#0077b6;">
+    <input type="checkbox" id="toggle-deepsea" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Deep Sea</span>
+  </label>
+  <label class="toggle-chip" style="--chip-color:#aacc00;">
+    <input type="checkbox" id="toggle-bugs" onchange="rebuildLists()">
+    <span class="chip-dot"></span>
+    <span class="chip-label">Weird Bugs</span>
+  </label>
 </div>
 
 <div class="controls" id="controls"></div>
 
 <div class="action-bar">
+  <button class="btn-all-random" onclick="clearAll()">Clear All</button>
   <button class="btn-all-random" onclick="randomizeAll()">Randomize All</button>
   <button class="btn-generate" onclick="generate()">Generate</button>
-  <button class="btn-print" onclick="window.print()">Print Reference</button>
+  <button class="btn-all-random" onclick="revealAll()" id="btn-reveal" style="display:none;">Reveal All</button>
+  <button class="btn-all-random" onclick="hideAll()" id="btn-hide" style="display:none;">Hide All</button>
 </div>
 
 <div class="results" id="results"></div>
@@ -425,7 +487,7 @@ const ANIMALS = [
   "Elephant","Elk","Emu","Falcon","Ferret","Flamingo","Fly","Fox",
   "Frog","Gazelle","Gecko","Giraffe","Goat","Goose","Gorilla",
   "Grasshopper","Grizzly Bear","Hamster","Hare","Hawk","Hedgehog",
-  "Hippopotamus","Hornet","Horse","Hummingbird","Hyena","Iguana",
+  "Hippopotamus","Hornet","Horse","Human","Hummingbird","Hyena","Iguana",
   "Impala","Jackal","Jaguar","Jellyfish","Kangaroo","Koala",
   "Komodo Dragon","Ladybug","Lemur","Leopard","Lion","Lizard","Llama",
   "Lobster","Lynx","Macaw","Mandrill","Manta Ray","Mantis","Meerkat",
@@ -495,6 +557,30 @@ const ALIENS = [
   "Grey Alien","Reptilian","Insectoid Alien",
 ];
 
+const DEEP_SEA = [
+  "Anglerfish","Barreleye","Blobfish","Blue-Ringed Octopus","Chambered Nautilus",
+  "Chimaera","Coconut Octopus","Colossal Squid","Cookiecutter Shark",
+  "Dumbo Octopus","Fangtooth","Firefly Squid","Frilled Shark",
+  "Giant Isopod","Giant Spider Crab","Glass Octopus","Glass Squid",
+  "Goblin Shark","Greenland Shark","Gulper Eel","Hagfish",
+  "Hatchetfish","Horseshoe Crab","Leafy Sea Dragon",
+  "Mantis Shrimp","Mimic Octopus","Nautilus","Oarfish",
+  "Pyrosome","Sea Angel","Sea Cucumber","Sea Pig","Sea Spider",
+  "Siphonophore","Stoplight Loosejaw","Vampire Squid","Viperfish","Yeti Crab",
+];
+
+const WEIRD_BUGS = [
+  "Atlas Moth","Assassin Bug","Brazilian Treehopper","Bombardier Beetle",
+  "Devil's Flower Mantis","Dung Beetle","Giant Weta","Giraffe Weevil",
+  "Glowworm","Goliath Beetle","Goliath Birdeater","Hercules Beetle",
+  "Hickory Horned Devil","Jewel Beetle","Leaf Insect","Luna Moth",
+  "Orchid Mantis","Puss Moth Caterpillar","Rhinoceros Beetle",
+  "Rosy Maple Moth","Saddleback Caterpillar","Scorpionfly",
+  "Spiny Flower Mantis","Spiny Orb Weaver","Stick Insect",
+  "Thorn Bug","Titan Beetle","Venezuelan Poodle Moth",
+  "Walking Leaf","Wheel Bug","Whip Scorpion",
+];
+
 // Returns the combined active creature list based on toggle state
 function getActiveList() {
   const list = [];
@@ -503,6 +589,8 @@ function getActiveList() {
   if (document.getElementById('toggle-mythical').checked) list.push(...MYTHICAL);
   if (document.getElementById('toggle-fiction').checked)  list.push(...FICTION);
   if (document.getElementById('toggle-aliens').checked)  list.push(...ALIENS);
+  if (document.getElementById('toggle-deepsea').checked) list.push(...DEEP_SEA);
+  if (document.getElementById('toggle-bugs').checked)    list.push(...WEIRD_BUGS);
   // Deduplicate (e.g. Basilisk, Hippogriff appear in both Mythical and Fiction)
   const unique = [...new Set(list)];
   unique.sort();
@@ -527,6 +615,7 @@ BODY_PARTS.forEach(part => {
         <input type="text" id="input-${part.id}" placeholder="Type an animal..." autocomplete="off">
         <div class="autocomplete-list" id="list-${part.id}"></div>
       </div>
+      <button class="btn-lock" id="lock-${part.id}" onclick="toggleLock('${part.id}')" title="Lock this slot">&#128275;</button>
       <button class="btn-random" onclick="randomize('${part.id}')" title="Random">&#127922;</button>
     </div>
   `;
@@ -579,7 +668,19 @@ function setupAutocomplete(partId) {
   input.addEventListener('blur', () => { list.classList.remove('active'); });
 }
 
+function isLocked(partId) {
+  return document.getElementById(`lock-${partId}`).classList.contains('locked');
+}
+
+function toggleLock(partId) {
+  const btn = document.getElementById(`lock-${partId}`);
+  btn.classList.toggle('locked');
+  // Switch between locked and unlocked icons
+  btn.innerHTML = btn.classList.contains('locked') ? '&#128274;' : '&#128275;';
+}
+
 function randomize(partId) {
+  if (isLocked(partId)) return;
   const input = document.getElementById(`input-${partId}`);
   const list = getActiveList();
   if (!list.length) return;
@@ -588,6 +689,25 @@ function randomize(partId) {
 
 function randomizeAll() {
   BODY_PARTS.forEach(part => randomize(part.id));
+}
+
+function clearAll() {
+  BODY_PARTS.forEach(part => {
+    if (!isLocked(part.id)) {
+      document.getElementById(`input-${part.id}`).value = '';
+    }
+  });
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('btn-reveal').style.display = 'none';
+  document.getElementById('btn-hide').style.display = 'none';
+}
+
+function revealAll() {
+  document.querySelectorAll('.card-img-wrapper.hidden').forEach(w => w.classList.remove('hidden'));
+}
+
+function hideAll() {
+  document.querySelectorAll('.card-img-wrapper').forEach(w => w.classList.add('hidden'));
 }
 
 // Image cache — stores { img: url, source: url } per animal
@@ -609,6 +729,7 @@ const WIKI_OVERRIDES = {
   'Rooster':      'Rooster',
   'Ox':           'Ox',
   'Boar':         'Wild_boar',
+  'Human':        'Human_body',
   'Panda':        'Giant_panda',
   'Panther':      'Black_panther_(animal)',
   // Dinosaurs
@@ -688,6 +809,38 @@ const WIKI_OVERRIDES = {
   'Sandworm':     'Sandworm_(Dune)',
   'Kaiju':        'Kaiju',
   'Cloverfield Monster': 'Clover_(creature)',
+  // Deep Sea
+  'Blobfish':     'Blobfish',
+  'Chimaera':     'Chimaera_(fish)',
+  'Sea Pig':      'Sea_pig',
+  'Sea Angel':    'Sea_angel',
+  'Sea Spider':   'Sea_spider',
+  'Chambered Nautilus': 'Chambered_nautilus',
+  'Vampire Squid': 'Vampire_squid',
+  'Dumbo Octopus': 'Grimpoteuthis',
+  'Gulper Eel':   'Pelican_eel',
+  'Leafy Sea Dragon': 'Leafy_seadragon',
+  'Giant Isopod': 'Giant_isopod',
+  'Giant Spider Crab': 'Japanese_spider_crab',
+  'Glass Squid':  'Cranchiidae',
+  'Cookiecutter Shark': 'Cookiecutter_shark',
+  'Yeti Crab':    'Yeti_crab',
+  'Blue-Ringed Octopus': 'Blue-ringed_octopus',
+  // Weird Bugs
+  'Goliath Birdeater': 'Goliath_birdeater',
+  'Giant Weta':   'Giant_weta',
+  'Orchid Mantis': 'Hymenopus_coronatus',
+  'Giraffe Weevil': 'Giraffe_weevil',
+  'Hickory Horned Devil': 'Hickory_horned_devil',
+  'Walking Leaf': 'Leaf_insect',
+  'Leaf Insect':  'Leaf_insect',
+  'Stick Insect': 'Phasmatodea',
+  'Whip Scorpion': 'Thelyphonida',
+  'Venezuelan Poodle Moth': 'Venezuelan_poodle_moth',
+  'Thorn Bug':    'Umbonia_crassicornis',
+  'Brazilian Treehopper': 'Bocydium_globulare',
+  "Devil's Flower Mantis": 'Idolomantis_diabolica',
+  'Spiny Flower Mantis': 'Pseudocreobotra_wahlbergii',
   // Aliens
   'E.T.':         'E.T._the_Extra-Terrestrial',
   'Groot':        'Groot',
@@ -954,6 +1107,8 @@ async function fetchAnimalImage(animal) {
 async function generate() {
   const resultsEl = document.getElementById('results');
   resultsEl.innerHTML = '';
+  document.getElementById('btn-reveal').style.display = 'none';
+  document.getElementById('btn-hide').style.display = 'none';
 
   const selections = BODY_PARTS.map(part => ({
     part,
@@ -986,10 +1141,13 @@ async function generate() {
   function imageSearchUrl(animal, partId) {
     const suffix = SEARCH_TERMS[partId] || '';
     let context = 'animal';
-    if (MYTHICAL.includes(animal))   context = 'mythology creature';
-    if (DINOSAURS.includes(animal))  context = 'dinosaur';
-    if (FICTION.includes(animal))    context = 'fictional creature';
-    if (ALIENS.includes(animal))    context = 'alien creature sci-fi';
+    if (animal === 'Human')               context = '';
+    else if (MYTHICAL.includes(animal))   context = 'mythology creature';
+    else if (DINOSAURS.includes(animal))  context = 'dinosaur';
+    else if (FICTION.includes(animal))    context = 'fictional creature';
+    else if (ALIENS.includes(animal))     context = 'alien creature sci-fi';
+    else if (DEEP_SEA.includes(animal))   context = 'deep sea creature';
+    else if (WEIRD_BUGS.includes(animal)) context = 'insect bug';
     const q = (animal + ' ' + context + ' ' + suffix + ' reference photo').trim();
     return `https://www.google.com/search?q=${encodeURIComponent(q)}&udm=2`;
   }
@@ -1030,12 +1188,25 @@ async function generate() {
         link.title = 'View source page';
         nameEl.replaceWith(link);
 
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card-img-wrapper hidden';
+
         const img = document.createElement('img');
         img.className = 'card-img';
         img.alt = `${animal} - reference for ${part.label}`;
         img.src = result.img;
         img.loading = 'lazy';
-        card.querySelector('.loading').replaceWith(img);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'card-reveal-overlay';
+        overlay.innerHTML = '<span class="reveal-icon">&#128065;</span><span class="reveal-text">Click to reveal</span>';
+        overlay.addEventListener('click', () => wrapper.classList.remove('hidden'));
+        img.addEventListener('click', () => wrapper.classList.add('hidden'));
+        img.style.cursor = 'pointer';
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(overlay);
+        card.querySelector('.loading').replaceWith(wrapper);
       } else {
         card.querySelector('.loading').outerHTML = `<div class="card-error">No photo found for "${animal}".<br>Try a different spelling!</div>`;
       }
@@ -1045,6 +1216,10 @@ async function generate() {
   });
 
   await Promise.all(promises);
+
+  // Show the Reveal/Hide All buttons
+  document.getElementById('btn-reveal').style.display = '';
+  document.getElementById('btn-hide').style.display = '';
 
   // Scroll to results
   resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
