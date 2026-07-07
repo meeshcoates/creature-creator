@@ -455,9 +455,16 @@
   <button class="btn-generate" onclick="generate()">Generate</button>
   <button class="btn-all-random" onclick="revealAll()" id="btn-reveal" style="display:none;">Reveal All</button>
   <button class="btn-all-random" onclick="hideAll()" id="btn-hide" style="display:none;">Hide All</button>
+
 </div>
 
 <div class="results" id="results"></div>
+
+<div class="action-bar" id="prompt-bar" style="display:none;">
+  <button class="btn-generate" onclick="copyPrompt()" id="btn-prompt">Copy AI Prompt</button>
+</div>
+
+<div id="prompt-toast" style="display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#e94560;color:white;padding:0.7rem 1.5rem;border-radius:10px;font-size:0.9rem;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.4);">Prompt copied to clipboard!</div>
 
 <script>
 const BODY_PARTS = [
@@ -700,6 +707,7 @@ function clearAll() {
   document.getElementById('results').innerHTML = '';
   document.getElementById('btn-reveal').style.display = 'none';
   document.getElementById('btn-hide').style.display = 'none';
+  document.getElementById('prompt-bar').style.display = 'none';
 }
 
 function revealAll() {
@@ -708,6 +716,43 @@ function revealAll() {
 
 function hideAll() {
   document.querySelectorAll('.card-img-wrapper').forEach(w => w.classList.add('hidden'));
+}
+
+function copyPrompt() {
+  const PROMPT_LABELS = {
+    base:  'the overall body shape and size of a',
+    head:  'the head of a',
+    ears:  'the ears of a',
+    eyes:  'the eyes of a',
+    nose:  'the nose/snout of a',
+    body:  'the torso of a',
+    front: 'the front legs/arms of a',
+    back:  'the back legs of a',
+    feet:  'the feet/paws of a',
+    tail:  'the tail of a',
+    coat:  'the skin/coat texture of a',
+    color: 'the colour and pattern of a',
+    wings: 'the wings of a',
+    extra: 'a unique feature from a',
+  };
+
+  const parts = BODY_PARTS
+    .map(part => {
+      const val = document.getElementById(`input-${part.id}`).value.trim();
+      if (!val) return null;
+      return `${PROMPT_LABELS[part.id] || 'the ' + part.label.toLowerCase() + ' of a'} ${val}`;
+    })
+    .filter(Boolean);
+
+  if (!parts.length) return;
+
+  const prompt = `Create a detailed, realistic illustration of a fictional creature with:\n- ${parts.join('\n- ')}\n\nThe creature should look like a cohesive, believable animal. Show it in a natural habitat that suits its features. Highly detailed, concept art style.`;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    const toast = document.getElementById('prompt-toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  });
 }
 
 // Image cache — stores { img: url, source: url } per animal
@@ -1109,6 +1154,7 @@ async function generate() {
   resultsEl.innerHTML = '';
   document.getElementById('btn-reveal').style.display = 'none';
   document.getElementById('btn-hide').style.display = 'none';
+  document.getElementById('prompt-bar').style.display = 'none';
 
   const selections = BODY_PARTS.map(part => ({
     part,
@@ -1217,9 +1263,10 @@ async function generate() {
 
   await Promise.all(promises);
 
-  // Show the Reveal/Hide All buttons
+  // Show the Reveal/Hide All and Copy Prompt buttons
   document.getElementById('btn-reveal').style.display = '';
   document.getElementById('btn-hide').style.display = '';
+  document.getElementById('prompt-bar').style.display = '';
 
   // Scroll to results
   resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
